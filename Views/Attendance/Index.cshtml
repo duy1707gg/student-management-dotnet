@@ -1,0 +1,36 @@
+@model IEnumerable<student_management_dotnet.Models.Attendance>
+
+<h1>Attendance List</h1>
+
+<p>
+    <a asp-action="Create">Create New Attendance</a>
+</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>Attendance ID</th>
+            <th>Enrollment ID</th>
+            <th>Class Date</th>
+            <th>Status</th>
+            <th>Note</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.AttendanceId</td>
+                <td>@item.EnrollmentId</td>
+                <td>@item.ClassDate.ToShortDateString()</td>
+                <td>@item.Status</td>
+                <td>@item.Note</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.AttendanceId">Edit</a> |
+                    <a asp-action="Delete" asp-route-id="@item.AttendanceId">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,23 @@
+@model student_management_dotnet.Models.Attendance
+
+<h1>Create Attendance</h1>
+
+<form asp-action="Create">
+    <div>
+        <label asp-for="EnrollmentId"></label>
+        <select asp-for="EnrollmentId" asp-items="ViewBag.EnrollmentId"></select>
+    </div>
+    <div>
+        <label asp-for="ClassDate"></label>
+        <input asp-for="ClassDate" type="date" />
+    </div>
+    <div>
+        <label asp-for="Status"></label>
+        <input asp-for="Status" />
+    </div>
+    <div>
+        <label asp-for="Note"></label>
+        <input asp-for="Note" />
+    </div>
+    <button type="submit">Create</button>
+</form>
