@@ -22,33 +22,25 @@ pipeline {
 
         stage('Publish') {
             steps {
-                bat 'dotnet publish ./student-management-dotnet/student-management-dotnet.csproj -c Release -o ./publish
-'
+                bat 'dotnet publish ./student-management-dotnet/student-management-dotnet.csproj -c Release -o ./publish'
             }
         }
 
         stage('Deploy to IIS') {
             steps {
-                bat 'xcopy "%WORKSPACE%\\publish" /E /Y /I /R "c:\\wwwroot\\myproject"'
+                bat 'xcopy "%WORKSPACE%\\publish" "c:\\wwwroot\\myproject" /E /Y /I /R'
             }
         }
 
-
-stage('Deploy to IIS1111') {
+        stage('Deploy to IIS1111') {
             steps {
                 powershell '''
-               
-                # Tạo website nếu chưa có
-                Import-Module WebAdministration
-                if (-not (Test-Path IIS:\\Sites\\MySite)) {
-                    New-Website -Name "MySite" -Port 81 -PhysicalPath "c:\\wwwroot\\myproject"
-                }
+                    Import-Module WebAdministration
+                    if (-not (Test-Path IIS:\\Sites\\MySite)) {
+                        New-Website -Name "MySite" -Port 81 -PhysicalPath "c:\\wwwroot\\myproject"
+                    }
                 '''
             }
-        } // end deploy iis
-
-
+        }
     }
-
-
-    }
+}
