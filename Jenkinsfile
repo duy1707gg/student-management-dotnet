@@ -22,7 +22,8 @@ pipeline {
 
         stage('Publish') {
             steps {
-                bat 'dotnet publish -c Release -o ./publish'
+                bat 'dotnet publish ./student-management-dotnet/student-management-dotnet.csproj -c Release -o ./publish
+'
             }
         }
 
