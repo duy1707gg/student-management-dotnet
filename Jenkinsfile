@@ -20,17 +20,18 @@ pipeline {
             }
         }
 
-        stage('Publish') {
-            steps {
-                bat 'dotnet publish student-management-dotnet.csproj -c Release -o ./publish'
-            }
-        }
+stage('Publish') {
+    steps {
+        bat 'dotnet publish student-management-dotnet.csproj -c Release -o ./artifacts'
+    }
+}
 
-        stage('Deploy to IIS') {
-            steps {
-                bat 'xcopy "%WORKSPACE%\\publish" "c:\\wwwroot\\myproject" /E /Y /I /R'
-            }
-        }
+stage('Deploy to IIS') {
+    steps {
+        bat 'xcopy "%WORKSPACE%\\artifacts" /E /Y /I /R "c:\\wwwroot\\myproject"'
+    }
+}
+
 stage('List files') {
     steps {
         bat 'dir /s'
