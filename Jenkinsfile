@@ -22,7 +22,7 @@ pipeline {
 
         stage('Publish') {
             steps {
-                bat 'dotnet publish ./student-management-dotnet/student-management-dotnet.csproj -c Release -o ./publish'
+                bat 'dotnet publish student-management-dotnet.csproj -c Release -o ./publish'
             }
         }
 
@@ -31,6 +31,12 @@ pipeline {
                 bat 'xcopy "%WORKSPACE%\\publish" "c:\\wwwroot\\myproject" /E /Y /I /R'
             }
         }
+stage('List files') {
+    steps {
+        bat 'dir /s'
+    }
+}
+
 
         stage('Deploy to IIS1111') {
             steps {
