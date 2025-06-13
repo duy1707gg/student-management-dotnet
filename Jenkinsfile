@@ -20,24 +20,23 @@ pipeline {
             }
         }
 
-stage('Publish') {
-    steps {
-        bat 'dotnet publish student-management-dotnet.csproj -c Release -o ./artifacts'
-    }
-}
+        stage('Publish') {
+            steps {
+                bat 'dotnet publish student-management-dotnet.csproj -c Release -o ./artifacts /p:PublishSingleFile=false'
+            }
+        }
 
-stage('Deploy to IIS') {
-    steps {
-        bat 'xcopy "%WORKSPACE%\\artifacts" /E /Y /I /R "c:\\wwwroot\\myproject"'
-    }
-}
+        stage('Deploy to IIS') {
+            steps {
+                bat 'xcopy "%WORKSPACE%\\artifacts" /E /Y /I /R "c:\\wwwroot\\myproject"'
+            }
+        }
 
-stage('List files') {
-    steps {
-        bat 'dir /s'
-    }
-}
-
+        stage('List files') {
+            steps {
+                bat 'dir "c:\\wwwroot\\myproject" /s'
+            }
+        }
 
         stage('Deploy to IIS1111') {
             steps {
