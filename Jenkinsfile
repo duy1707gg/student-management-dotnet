@@ -1,16 +1,10 @@
 pipeline {
     agent any
 
-    environment {
-        DOTNET_ROOT = 'C:\\Program Files\\dotnet'
-        PUBLISH_DIR = 'publish'
-        IIS_TARGET = 'C:\\inetpub\\student-management'
-    }
-
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/your-username/student-management-dotnet.git'
+                git branch: 'master', url: 'https://github.com/duy1707gg/student-management-dotnet.git'
             }
         }
 
@@ -28,23 +22,30 @@ pipeline {
 
         stage('Publish') {
             steps {
-                bat 'dotnet publish student-management-dotnet/student-management-dotnet.csproj --configuration Release --output %PUBLISH_DIR%'
+                bat 'dotnet publish -c Release -o ./publish'
             }
         }
 
         stage('Deploy to IIS') {
             steps {
-                bat "xcopy /Y /E /I %PUBLISH_DIR% %IIS_TARGET%"
+                bat 'xcopy "%WORKSPACE%\\publish" /E /Y /I /R "c:\\wwwroot\\myproject"'
             }
         }
+stage('Deploy to IIS') {
+            steps {
+                powershell '''
+               
+                # Tạo website nếu chưa có
+                Import-Module WebAdministration
+                if (-not (Test-Path IIS:\\Sites\\MySite)) {
+                    New-Website -Name "MySite" -Port 81 -PhysicalPath "c:\\wwwroot\\myproject"
+                }
+                '''
+            }
+        } // end deploy iis
+
+
     }
 
-    post {
-        success {
-            echo '✅ Deploy thành công!'
-        }
-        failure {
-            echo '❌ Deploy thất bại.'
-        }
+
     }
-}
