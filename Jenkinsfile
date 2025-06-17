@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = 'duy1707gg/student-management-dotnet'
+        TAG = 'latest'
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -27,6 +32,28 @@ pipeline {
             steps {
                 echo '📦 Publishing project...'
                 bat 'dotnet publish student-management-dotnet.csproj -c Release -o ./artifacts /p:PublishSingleFile=false'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                echo '🐳 Building Docker image...'
+                script {
+                    docker.build("${IMAGE_NAME}:${TAG}")
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                echo '📤 Pushing Docker image...'
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    script {
+                        docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials') {
+                            docker.image("${IMAGE_NAME}:${TAG}").push()
+                        }
+                    }
+                }
             }
         }
 
