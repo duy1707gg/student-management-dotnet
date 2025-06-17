@@ -92,7 +92,7 @@ pipeline {
                     Import-Module WebAdministration
                     $siteName = "StudentManagement"
                     $sitePath = "C:\\inetpub\\wwwroot\\student-management"
-                    $port = 8080
+                    $port = 8030
 
                     if (-not (Test-Path "IIS:\\Sites\\$siteName")) {
                         New-Website -Name $siteName -Port $port -PhysicalPath $sitePath -ApplicationPool "DefaultAppPool"
