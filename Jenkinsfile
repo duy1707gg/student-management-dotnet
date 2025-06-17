@@ -35,17 +35,16 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
-            steps {
-                echo '🐳 Building Docker image...'
-                script {
-                    // Build image từ thư mục D:\student-management-dotnet nếu Dockerfile nằm ở đó
-                    dir('D:\\student-management-dotnet') {
-                        docker.build("${IMAGE_NAME}:${TAG}")
-                    }
-                }
+stage('Build Docker Image') {
+    steps {
+        echo '🐳 Building Docker image...'
+        script {
+            dir('D:\\student-management-dotnet') {
+                docker.build("${IMAGE_NAME}:${TAG}", ".")
             }
         }
+    }
+}
 
         stage('Push Docker Image') {
             steps {
