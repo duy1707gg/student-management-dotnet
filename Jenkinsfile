@@ -19,6 +19,14 @@ pipeline {
             }
         }
 
+        stage('Clean Artifacts') {
+            steps {
+                echo '🧹 Cleaning old artifacts...'
+                bat "rmdir /S /Q \"${env.ARTIFACT_PATH}\" || exit 0"
+                bat "mkdir \"${env.ARTIFACT_PATH}\""
+            }
+        }
+
         stage('Restore') {
             steps {
                 echo '🔧 Restoring NuGet packages...'
@@ -33,18 +41,10 @@ pipeline {
             }
         }
 
-        stage('Clean Artifacts') {
-            steps {
-                echo '🧹 Cleaning artifacts directory...'
-                bat "rmdir /S /Q \"${env.ARTIFACT_PATH}\" || exit 0"
-                bat "mkdir \"${env.ARTIFACT_PATH}\""
-            }
-        }
-
         stage('Publish') {
             steps {
                 echo '📦 Publishing project...'
-                bat "dotnet publish \"${env.CSPROJ}\" -c Release -o \"${env.ARTIFACT_PATH}\" /p:PublishSingleFile=false"
+                bat "dotnet publish \"${env.CSPROJ}\" -c Release -o \"${env.ARTIFACT_PATH}\" /p:PublishSingleFile=false /p:GenerateRuntimeConfigurationFiles=true"
             }
         }
 
