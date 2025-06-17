@@ -33,6 +33,14 @@ pipeline {
             }
         }
 
+        stage('Clean Artifacts') {
+            steps {
+                echo '🧹 Cleaning artifacts directory...'
+                bat "rmdir /S /Q \"${env.ARTIFACT_PATH}\" || exit 0"
+                bat "mkdir \"${env.ARTIFACT_PATH}\""
+            }
+        }
+
         stage('Publish') {
             steps {
                 echo '📦 Publishing project...'
