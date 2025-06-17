@@ -17,21 +17,21 @@ pipeline {
         stage('Restore') {
             steps {
                 echo '🔧 Restoring NuGet packages...'
-                bat 'dotnet restore student-management-dotnet.sln'
+                bat 'dotnet restore D:\\student-management-dotnet\\student-management-dotnet.sln'
             }
         }
 
         stage('Build') {
             steps {
                 echo '⚙️ Building solution...'
-                bat 'dotnet build student-management-dotnet.sln --configuration Release'
+                bat 'dotnet build D:\\student-management-dotnet\\student-management-dotnet.sln --configuration Release'
             }
         }
 
         stage('Publish') {
             steps {
                 echo '📦 Publishing project...'
-                bat 'dotnet publish student-management-dotnet.csproj -c Release -o ./artifacts /p:PublishSingleFile=false'
+                bat 'dotnet publish D:\\student-management-dotnet\\student-management-dotnet.csproj -c Release -o D:\\student-management-dotnet\\artifacts /p:PublishSingleFile=false'
             }
         }
 
@@ -39,7 +39,10 @@ pipeline {
             steps {
                 echo '🐳 Building Docker image...'
                 script {
-                    docker.build("${IMAGE_NAME}:${TAG}")
+                    // Build image từ thư mục D:\student-management-dotnet nếu Dockerfile nằm ở đó
+                    dir('D:\\student-management-dotnet') {
+                        docker.build("${IMAGE_NAME}:${TAG}")
+                    }
                 }
             }
         }
@@ -60,7 +63,7 @@ pipeline {
         stage('Deploy to IIS - Copy') {
             steps {
                 echo '📁 Copying to IIS directory...'
-                bat 'xcopy "%WORKSPACE%\\artifacts" "C:\\wwwroot\\myproject" /E /Y /I /R'
+                bat 'xcopy "D:\\student-management-dotnet\\artifacts" "C:\\wwwroot\\myproject" /E /Y /I /R'
             }
         }
 
