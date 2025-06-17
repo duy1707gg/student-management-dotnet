@@ -8,7 +8,7 @@ pipeline {
         ARTIFACT_PATH = "${env.WORKSPACE}\\artifacts"
         IIS_DEPLOY_PATH = 'C:\\inetpub\\wwwroot\\student-management'
         SOLUTION = "${env.WORKSPACE}\\student-management-dotnet.sln"
-        CSPROJ = "${env.WORKSPACE}\\student-management-dotnet\\student-management-dotnet.csproj"
+        CSPROJ = "${env.WORKSPACE}\\student-management-dotnet.csproj"
     }
 
     stages {
