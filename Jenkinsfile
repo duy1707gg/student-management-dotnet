@@ -2,38 +2,41 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = 'duy1707gg/student-management-dotnet'
+        GIT_REPO = 'https://github.com/duy1707gg/student-management-dotnet.git'
+        IMAGE_NAME = 'duytranhn1707/student-management-dotnet'
         TAG = 'latest'
         ARTIFACT_PATH = "${env.WORKSPACE}\\artifacts"
-        IIS_DEPLOY_PATH = 'C:\\wwwroot\\myproject'
+        IIS_DEPLOY_PATH = 'C:\\inetpub\\wwwroot\\student-management'
+        SOLUTION = "${env.WORKSPACE}\\student-management-dotnet.sln"
+        CSPROJ = "${env.WORKSPACE}\\student-management-dotnet\\student-management-dotnet.csproj"
     }
 
     stages {
         stage('Checkout') {
             steps {
-                echo '📥 Checking out code...'
-                git branch: 'master', url: 'https://github.com/duy1707gg/student-management-dotnet.git'
+                echo '📥 Checking out code from GitHub...'
+                git branch: 'master', url: "${env.GIT_REPO}"
             }
         }
 
         stage('Restore') {
             steps {
                 echo '🔧 Restoring NuGet packages...'
-                bat "dotnet restore ${env.WORKSPACE}\\student-management-dotnet.sln"
+                bat "dotnet restore \"${env.SOLUTION}\""
             }
         }
 
         stage('Build') {
             steps {
                 echo '⚙️ Building solution...'
-                bat "dotnet build ${env.WORKSPACE}\\student-management-dotnet.sln --configuration Release"
+                bat "dotnet build \"${env.SOLUTION}\" --configuration Release --no-restore"
             }
         }
 
         stage('Publish') {
             steps {
                 echo '📦 Publishing project...'
-                bat "dotnet publish ${env.WORKSPACE}\\student-management-dotnet.csproj -c Release -o ${env.ARTIFACT_PATH} /p:PublishSingleFile=false"
+                bat "dotnet publish \"${env.CSPROJ}\" -c Release -o \"${env.ARTIFACT_PATH}\" /p:PublishSingleFile=false"
             }
         }
 
@@ -41,16 +44,14 @@ pipeline {
             steps {
                 echo '🐳 Building Docker image...'
                 script {
-                    dir("${env.WORKSPACE}") {
-                        docker.build("${IMAGE_NAME}:${TAG}", ".")
-                    }
+                    docker.build("${IMAGE_NAME}:${TAG}", '.')
                 }
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                echo '📤 Pushing Docker image...'
+                echo '📤 Pushing Docker image to Docker Hub...'
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     script {
                         docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials') {
@@ -63,12 +64,13 @@ pipeline {
 
         stage('Deploy to IIS - Copy') {
             steps {
-                echo '📁 Copying to IIS directory...'
-                bat "xcopy \"${env.ARTIFACT_PATH}\" \"${env.IIS_DEPLOY_PATH}\" /E /Y /I /R"
+                echo '📁 Copying published files to IIS folder...'
+                bat "if not exist \"${env.IIS_DEPLOY_PATH}\" mkdir \"${env.IIS_DEPLOY_PATH}\""
+                bat "xcopy /E /Y /I /R \"${env.ARTIFACT_PATH}\\*\" \"${env.IIS_DEPLOY_PATH}\""
             }
         }
 
-        stage('List files') {
+        stage('List deployed files') {
             steps {
                 echo '📝 Listing deployed files...'
                 bat "dir \"${env.IIS_DEPLOY_PATH}\" /s"
@@ -80,17 +82,27 @@ pipeline {
                 echo '🌐 Configuring IIS Website...'
                 powershell '''
                     Import-Module WebAdministration
-                    $siteName = "MySite"
-                    $sitePath = "C:\\wwwroot\\myproject"
-                    $port = 81
+                    $siteName = "StudentManagement"
+                    $sitePath = "C:\\inetpub\\wwwroot\\student-management"
+                    $port = 8080
 
                     if (-not (Test-Path "IIS:\\Sites\\$siteName")) {
                         New-Website -Name $siteName -Port $port -PhysicalPath $sitePath -ApplicationPool "DefaultAppPool"
+                        Write-Host "✅ Website '$siteName' created on port $port."
                     } else {
-                        Write-Output "Website '$siteName' already exists."
+                        Write-Host "ℹ️ Website '$siteName' already exists."
                     }
                 '''
             }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Deployment completed successfully!"
+        }
+        failure {
+            echo "❌ Deployment failed. Check the logs for details."
         }
     }
 }
