@@ -77,14 +77,7 @@ pipeline {
                 powershell '''
                     Import-Module WebAdministration
                     if (Test-Path "IIS:\\AppPools\\${env:APP_POOL_NAME}") {
-                        $appPoolState = (Get-WebAppPoolState -Name "${env:APP_POOL_NAME}").Value
-                        if ($appPoolState -ne "Stopped") {
-                            Stop-WebAppPool -Name "${env:APP_POOL_NAME}"
-                        } else {
-                            Write-Host "ℹ️ AppPool is already stopped."
-                        }
-                    } else {
-                        Write-Host "⚠️ AppPool not found: ${env:APP_POOL_NAME}"
+                        Stop-WebAppPool -Name "${env:APP_POOL_NAME}"
                     }
                 '''
             }
@@ -96,7 +89,7 @@ pipeline {
                 bat "if not exist \"${env.IIS_DEPLOY_PATH}\" mkdir \"${env.IIS_DEPLOY_PATH}\""
                 bat """
                     robocopy \"${env.ARTIFACT_PATH}\" \"${env.IIS_DEPLOY_PATH}\" /E /Z /NP /NFL /NDL /R:3 /W:5
-                    if %ERRORLEVEL% GEQ 8 exit /b %ERRORLEVEL%
+                    IF %ERRORLEVEL% GEQ 8 exit /b %ERRORLEVEL%
                 """
             }
         }
@@ -107,14 +100,7 @@ pipeline {
                 powershell '''
                     Import-Module WebAdministration
                     if (Test-Path "IIS:\\AppPools\\${env:APP_POOL_NAME}") {
-                        $appPoolState = (Get-WebAppPoolState -Name "${env:APP_POOL_NAME}").Value
-                        if ($appPoolState -ne "Started") {
-                            Start-WebAppPool -Name "${env:APP_POOL_NAME}"
-                        } else {
-                            Write-Host "ℹ️ AppPool is already running."
-                        }
-                    } else {
-                        Write-Host "⚠️ AppPool not found: ${env:APP_POOL_NAME}"
+                        Start-WebAppPool -Name "${env:APP_POOL_NAME}"
                     }
                 '''
             }
@@ -138,9 +124,6 @@ pipeline {
 
                     if (-not (Test-Path "IIS:\\Sites\\$siteName")) {
                         New-Website -Name $siteName -Port $port -PhysicalPath $sitePath -ApplicationPool "${env:APP_POOL_NAME}"
-                        Write-Host "✅ Website '$siteName' created on port $port."
-                    } else {
-                        Write-Host "ℹ️ Website '$siteName' already exists."
                     }
                 '''
             }

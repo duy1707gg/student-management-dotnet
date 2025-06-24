@@ -3,7 +3,7 @@ version: '3.9'
 services:
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: sqlserver2
+    container_name: sqlserver
     environment:
       - SA_PASSWORD=Duyhl@123
       - ACCEPT_EULA=Y
