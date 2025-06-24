@@ -1,0 +1,333 @@
+@model student_management_dotnet.ViewModel.ClassAttendanceReportViewModel
+
+@{
+    ViewData["Title"] = "Attendance Report for " + Model.ClassName;
+}
+
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-6">
+        <a href="@Url.Action("CourseClasses", new { id = Model.CourseId })" class="inline-flex items-center text-blue-600 hover:text-blue-800">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+            </svg>
+            Back to Classes
+        </a>
+    </div>
+    
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
+            <p>@TempData["ErrorMessage"]</p>
+        </div>
+    }
+    
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Attendance Report</h1>
+            <p class="text-sm text-gray-600">
+                Course: @Model.CourseName | Class: @Model.ClassName | Total Students: @Model.TotalStudents
+            </p>
+        </div>
+        <div>
+            <a href="@Url.Action("ClassStudents", new { id = Model.ClassId })" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Take Attendance
+            </a>
+        </div>
+    </div>
+    
+    @if (!Model.AttendanceDates.Any())
+    {
+        <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6" role="alert">
+            <p class="font-bold">No attendance data available</p>
+            <p>No attendance has been recorded for this class yet.</p>
+        </div>
+    }
+    else
+    {
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <!-- Overall attendance rate -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-700 mb-2">Average Attendance Rate</h3>
+                <div class="text-3xl font-bold text-blue-600">
+                    @(Model.AttendanceDates.Average(d => d.AttendanceRate).ToString("F1"))%
+                </div>
+                <p class="text-sm text-gray-500 mt-1">Across @Model.AttendanceDates.Count sessions</p>
+            </div>
+            
+            <!-- Present/Absent/Late Counts -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-700 mb-2">Total Status Counts</h3>
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <div class="text-xl font-bold text-green-600">
+                            @Model.AttendanceDates.Sum(d => d.PresentCount)
+                        </div>
+                        <p class="text-xs text-gray-500">Present</p>
+                    </div>
+                    <div>
+                        <div class="text-xl font-bold text-red-600">
+                            @Model.AttendanceDates.Sum(d => d.AbsentCount)
+                        </div>
+                        <p class="text-xs text-gray-500">Absent</p>
+                    </div>
+                    <div>
+                        <div class="text-xl font-bold text-yellow-600">
+                            @Model.AttendanceDates.Sum(d => d.LateCount)
+                        </div>
+                        <p class="text-xs text-gray-500">Late</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Date stats -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-700 mb-2">Date Information</h3>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <div class="text-md font-bold text-gray-800">
+                            @Model.AttendanceDates.First().Date.ToString("MMM d, yyyy")
+                        </div>
+                        <p class="text-xs text-gray-500">First Session</p>
+                    </div>
+                    <div>
+                        <div class="text-md font-bold text-gray-800">
+                            @Model.AttendanceDates.Last().Date.ToString("MMM d, yyyy")
+                        </div>
+                        <p class="text-xs text-gray-500">Latest Session</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Attendance by Date Summary -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+            <div class="p-4 bg-gray-50 border-b">
+                <h2 class="text-lg font-semibold text-gray-700">Attendance by Date</h2>
+            </div>
+            
+            <div class="p-4">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Date
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Present
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Absent
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Late
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Attendance Rate
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @foreach (var date in Model.AttendanceDates)
+                            {
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900">
+                                            @date.Date.ToString("MMM d, yyyy")
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-green-600">
+                                            @date.PresentCount
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-red-600">
+                                            @date.AbsentCount
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-yellow-600">
+                                            @date.LateCount
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium 
+                                            @(date.AttendanceRate >= 90 ? "text-green-600" : 
+                                              date.AttendanceRate >= 70 ? "text-yellow-600" : "text-red-600")">
+                                            @date.AttendanceRate.ToString("F1")%
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Student Attendance Summary -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+            <div class="p-4 bg-gray-50 border-b">
+                <h2 class="text-lg font-semibold text-gray-700">Student Attendance Summary</h2>
+            </div>
+            
+            <div class="p-4">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Student
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Present
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Absent
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Late
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Attendance Rate
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @foreach (var student in Model.StudentReports)
+                            {
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900">
+                                            @student.StudentName
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-green-600">
+                                            @student.PresentCount
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-red-600">
+                                            @student.AbsentCount
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-yellow-600">
+                                            @student.LateCount
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium 
+                                            @(student.AttendanceRate >= 90 ? "text-green-600" : 
+                                              student.AttendanceRate >= 70 ? "text-yellow-600" : "text-red-600")">
+                                            @student.AttendanceRate.ToString("F1")%
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Detailed Student Attendance Records -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="p-4 bg-gray-50 border-b">
+                <h2 class="text-lg font-semibold text-gray-700">Detailed Student Attendance Records</h2>
+            </div>
+            
+            <div class="p-4">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Student
+                                </th>
+                                @foreach (var date in Model.AttendanceDates)
+                                {
+                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        @date.Date.ToString("MM/dd")
+                                    </th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @foreach (var student in Model.StudentReports)
+                            {
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900">
+                                            @student.StudentName
+                                        </div>
+                                    </td>
+                                    @foreach (var dateAttendance in student.DateAttendances)
+                                    {
+                                        <td class="px-2 py-4 text-center">
+                                            <div data-tooltip-target="tooltip-@(student.UserId)-@(dateAttendance.Date.ToString("yyyyMMdd"))"
+                                                 class="inline-flex h-6 w-6 items-center justify-center rounded-full 
+                                                 @(dateAttendance.Status == "Present" ? "bg-green-100 text-green-800" : 
+                                                   dateAttendance.Status == "Absent" ? "bg-red-100 text-red-800" : 
+                                                   dateAttendance.Status == "Late" ? "bg-yellow-100 text-yellow-800" : 
+                                                   "bg-gray-100 text-gray-800")">
+                                                @(dateAttendance.Status == "Present" ? "P" : 
+                                                  dateAttendance.Status == "Absent" ? "A" : 
+                                                  dateAttendance.Status == "Late" ? "L" : 
+                                                  "?")
+                                            </div>
+                                            <div id="tooltip-@(student.UserId)-@(dateAttendance.Date.ToString("yyyyMMdd"))" 
+                                                 role="tooltip" 
+                                                 class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip">
+                                                <div>Date: @dateAttendance.Date.ToString("MMM d, yyyy")</div>
+                                                <div>Status: @dateAttendance.Status</div>
+                                                @if (!string.IsNullOrEmpty(dateAttendance.Note))
+                                                {
+                                                    <div>Note: @dateAttendance.Note</div>
+                                                }
+                                                <div class="tooltip-arrow" data-popper-arrow></div>
+                                            </div>
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // Initialize tooltips
+        document.addEventListener('DOMContentLoaded', function() {
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-tooltip-target]'));
+            tooltipTriggerList.forEach(function(tooltipTriggerEl) {
+                const targetId = tooltipTriggerEl.getAttribute('data-tooltip-target');
+                const tooltipEl = document.getElementById(targetId);
+                
+                if (tooltipEl) {
+                    tooltipTriggerEl.addEventListener('mouseenter', function() {
+                        tooltipEl.classList.remove('invisible', 'opacity-0');
+                        tooltipEl.classList.add('visible', 'opacity-100');
+                        
+                        // Position the tooltip
+                        const rect = tooltipTriggerEl.getBoundingClientRect();
+                        tooltipEl.style.left = rect.left + (rect.width / 2) - (tooltipEl.offsetWidth / 2) + 'px';
+                        tooltipEl.style.top = rect.bottom + 8 + 'px';
+                    });
+                    
+                    tooltipTriggerEl.addEventListener('mouseleave', function() {
+                        tooltipEl.classList.remove('visible', 'opacity-100');
+                        tooltipEl.classList.add('invisible', 'opacity-0');
+                    });
+                }
+            });
+        });
+    </script>
+}

@@ -1,0 +1,36 @@
+version: '3.9'
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver2
+    environment:
+      - SA_PASSWORD=Duyhl@123
+      - ACCEPT_EULA=Y
+    ports:
+      - "1433:1433"
+    networks:
+      - mynetwork
+
+  webapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: student-app
+    ports:
+      - "8095:80"
+    environment:
+      - DB_SERVER=sqlserver
+      - DB_PORT=1433
+      - DB_NAME=ClassroomManagement
+      - DB_USER=webappuser
+      - DB_PASSWORD=StrongPassword123!
+      - DB_TRUST_CERT=True
+    depends_on:
+      - sqlserver
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    driver: bridge

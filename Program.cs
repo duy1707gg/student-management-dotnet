@@ -1,19 +1,29 @@
-using Microsoft.EntityFrameworkCore;
-using student_management_dotnet.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using student_management_dotnet.Data;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ✅ Đặt cấu hình cổng ở đây
-builder.WebHost.UseUrls("http://localhost:81");
+// ✅ Cấu hình cổng
+builder.WebHost.UseUrls("http://0.0.0.0:80");
 
-// DB
+// ✅ Chuỗi kết nối từ biến môi trường hoặc appsettings.json
+var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION")
+    ?? builder.Configuration.GetConnectionString("DefaultConnection");
+
+if (string.IsNullOrEmpty(connectionString))
+    throw new InvalidOperationException("Connection string is null. Please check environment variable DB_CONNECTION or appsettings.json");
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(connectionString));
 
-// JWT
+// ✅ Cấu hình JWT
+var jwtKey = builder.Configuration["Jwt:Key"];
+var jwtIssuer = builder.Configuration["Jwt:Issuer"];
+var jwtAudience = builder.Configuration["Jwt:Audience"];
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -23,9 +33,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
         };
     });
 
@@ -33,6 +43,7 @@ builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
+// ✅ Middleware pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -41,10 +52,12 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// ✅ Cấu hình route mặc định
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
