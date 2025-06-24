@@ -9,7 +9,7 @@ pipeline {
         IIS_DEPLOY_PATH = 'C:\\inetpub\\wwwroot\\student-management'
         SOLUTION = "${env.WORKSPACE}\\student-management-dotnet.sln"
         CSPROJ = "${env.WORKSPACE}\\student-management-dotnet.csproj"
-        APP_POOL_NAME = 'DefaultAppPool'  // 👈 Đặt tên app pool bạn đang dùng
+        APP_POOL_NAME = 'DefaultAppPool'
     }
 
     stages {
@@ -23,7 +23,7 @@ pipeline {
         stage('Clean Artifacts') {
             steps {
                 echo '🧹 Cleaning old artifacts...'
-                bat "rmdir /S /Q \"${env.ARTIFACT_PATH}\" || exit 0"
+                bat "IF EXIST \"${env.ARTIFACT_PATH}\" rmdir /S /Q \"${env.ARTIFACT_PATH}\""
                 bat "mkdir \"${env.ARTIFACT_PATH}\""
             }
         }
@@ -45,7 +45,7 @@ pipeline {
         stage('Publish') {
             steps {
                 echo '📦 Publishing project...'
-                bat "dotnet publish \"${env.CSPROJ}\" -c Release -o \"${env.ARTIFACT_PATH}\" /p:PublishSingleFile=false /p:GenerateRuntimeConfigurationFiles=true"
+                bat "dotnet publish \"${env.CSPROJ}\" -c Release -o \"${env.ARTIFACT_PATH}\""
             }
         }
 
@@ -87,7 +87,10 @@ pipeline {
             steps {
                 echo '📁 Copying published files to IIS folder...'
                 bat "if not exist \"${env.IIS_DEPLOY_PATH}\" mkdir \"${env.IIS_DEPLOY_PATH}\""
-                bat "xcopy /E /Y /I /R \"${env.ARTIFACT_PATH}\\*\" \"${env.IIS_DEPLOY_PATH}\""
+                bat """
+                    robocopy \"${env.ARTIFACT_PATH}\" \"${env.IIS_DEPLOY_PATH}\" /E /Z /NP /NFL /NDL /R:3 /W:5
+                    if %ERRORLEVEL% GEQ 8 exit /b %ERRORLEVEL%
+                """
             }
         }
 
