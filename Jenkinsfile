@@ -9,6 +9,7 @@ pipeline {
         IIS_DEPLOY_PATH = 'C:\\inetpub\\wwwroot\\student-management'
         SOLUTION = "${env.WORKSPACE}\\student-management-dotnet.sln"
         CSPROJ = "${env.WORKSPACE}\\student-management-dotnet.csproj"
+        APP_POOL_NAME = 'DefaultAppPool'  // 👈 Đặt tên app pool bạn đang dùng
     }
 
     stages {
@@ -70,11 +71,35 @@ pipeline {
             }
         }
 
+        stage('Stop IIS AppPool') {
+            steps {
+                echo '⛔ Stopping IIS App Pool...'
+                powershell '''
+                    Import-Module WebAdministration
+                    if (Test-Path "IIS:\\AppPools\\${env:APP_POOL_NAME}") {
+                        Stop-WebAppPool -Name "${env:APP_POOL_NAME}"
+                    }
+                '''
+            }
+        }
+
         stage('Deploy to IIS - Copy') {
             steps {
                 echo '📁 Copying published files to IIS folder...'
                 bat "if not exist \"${env.IIS_DEPLOY_PATH}\" mkdir \"${env.IIS_DEPLOY_PATH}\""
                 bat "xcopy /E /Y /I /R \"${env.ARTIFACT_PATH}\\*\" \"${env.IIS_DEPLOY_PATH}\""
+            }
+        }
+
+        stage('Start IIS AppPool') {
+            steps {
+                echo '🚀 Starting IIS App Pool...'
+                powershell '''
+                    Import-Module WebAdministration
+                    if (Test-Path "IIS:\\AppPools\\${env:APP_POOL_NAME}") {
+                        Start-WebAppPool -Name "${env:APP_POOL_NAME}"
+                    }
+                '''
             }
         }
 
@@ -91,11 +116,11 @@ pipeline {
                 powershell '''
                     Import-Module WebAdministration
                     $siteName = "StudentManagement"
-                    $sitePath = "C:\\inetpub\\wwwroot\\student-management"
+                    $sitePath = "${env:IIS_DEPLOY_PATH}"
                     $port = 8090
 
                     if (-not (Test-Path "IIS:\\Sites\\$siteName")) {
-                        New-Website -Name $siteName -Port $port -PhysicalPath $sitePath -ApplicationPool "DefaultAppPool"
+                        New-Website -Name $siteName -Port $port -PhysicalPath $sitePath -ApplicationPool "${env:APP_POOL_NAME}"
                         Write-Host "✅ Website '$siteName' created on port $port."
                     } else {
                         Write-Host "ℹ️ Website '$siteName' already exists."
