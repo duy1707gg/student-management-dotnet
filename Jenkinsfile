@@ -77,7 +77,14 @@ pipeline {
                 powershell '''
                     Import-Module WebAdministration
                     if (Test-Path "IIS:\\AppPools\\${env:APP_POOL_NAME}") {
-                        Stop-WebAppPool -Name "${env:APP_POOL_NAME}"
+                        $appPoolState = (Get-WebAppPoolState -Name "${env:APP_POOL_NAME}").Value
+                        if ($appPoolState -ne "Stopped") {
+                            Stop-WebAppPool -Name "${env:APP_POOL_NAME}"
+                        } else {
+                            Write-Host "ℹ️ AppPool is already stopped."
+                        }
+                    } else {
+                        Write-Host "⚠️ AppPool not found: ${env:APP_POOL_NAME}"
                     }
                 '''
             }
@@ -100,7 +107,14 @@ pipeline {
                 powershell '''
                     Import-Module WebAdministration
                     if (Test-Path "IIS:\\AppPools\\${env:APP_POOL_NAME}") {
-                        Start-WebAppPool -Name "${env:APP_POOL_NAME}"
+                        $appPoolState = (Get-WebAppPoolState -Name "${env:APP_POOL_NAME}").Value
+                        if ($appPoolState -ne "Started") {
+                            Start-WebAppPool -Name "${env:APP_POOL_NAME}"
+                        } else {
+                            Write-Host "ℹ️ AppPool is already running."
+                        }
+                    } else {
+                        Write-Host "⚠️ AppPool not found: ${env:APP_POOL_NAME}"
                     }
                 '''
             }
