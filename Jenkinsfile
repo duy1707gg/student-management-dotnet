@@ -5,7 +5,7 @@ pipeline {
         GIT_REPO = 'https://github.com/duy1707gg/student-management-dotnet.git'
         IMAGE_NAME = 'duytranhn1707/student-management-dotnet'
         TAG = 'latest'
-        ARTIFACT_PATH = "${env.WORKSPACE}\\artifacts"
+        ARTIFACT_PATH = 'D:\\publish-temp'
         IIS_DEPLOY_PATH = 'C:\\inetpub\\wwwroot\\student-management'
         SOLUTION = "${env.WORKSPACE}\\student-management-dotnet.sln"
         CSPROJ = "${env.WORKSPACE}\\student-management-dotnet.csproj"
@@ -22,19 +22,36 @@ pipeline {
 
         stage('Clean Artifacts') {
             steps {
-                echo '🧹 Cleaning old artifacts...'
-                bat """
-                    IF EXIST "${env.ARTIFACT_PATH}" (
-                        rmdir /S /Q "${env.ARTIFACT_PATH}"
-                    )
-                    mkdir "${env.ARTIFACT_PATH}"
-                """
+                echo '🧹 Cleaning old publish folder...'
+                bat "IF EXIST \"${env.ARTIFACT_PATH}\" rmdir /S /Q \"${env.ARTIFACT_PATH}\""
+                bat "mkdir \"${env.ARTIFACT_PATH}\""
+            }
+        }
+
+        stage('Restore') {
+            steps {
+                echo '🔧 Restoring packages...'
+                bat "dotnet restore \"${env.SOLUTION}\""
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo '⚙️ Building project...'
+                bat "dotnet build \"${env.SOLUTION}\" -c Release --no-restore"
+            }
+        }
+
+        stage('Publish') {
+            steps {
+                echo '📦 Publishing project...'
+                bat "dotnet publish \"${env.CSPROJ}\" -c Release -o \"${env.ARTIFACT_PATH}\""
             }
         }
 
         stage('Stop IIS AppPool') {
             steps {
-                echo '⛔ Stopping IIS App Pool...'
+                echo '🛑 Stopping IIS App Pool...'
                 powershell '''
                     Import-Module WebAdministration
                     if (Test-Path "IIS:\\AppPools\\${env:APP_POOL_NAME}") {
@@ -48,66 +65,15 @@ pipeline {
             }
         }
 
-        stage('Restore') {
+        stage('Deploy to IIS') {
             steps {
-                echo '🔧 Restoring NuGet packages...'
-                bat "dotnet restore \"${env.SOLUTION}\""
-            }
-        }
-
-        stage('Build') {
-            steps {
-                echo '⚙️ Building solution...'
-                bat "dotnet build \"${env.SOLUTION}\" --configuration Release --no-restore"
-            }
-        }
-
-        stage('Publish') {
-            steps {
-                echo '📦 Publishing project to ARTIFACT_PATH...'
-                bat "dotnet publish \"${env.CSPROJ}\" -c Release -o \"${env.ARTIFACT_PATH}\""
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                echo '🐳 Building Docker image...'
-                script {
-                    docker.build("${IMAGE_NAME}:${TAG}", '.')
-                }
-            }
-        }
-
-        stage('Push Docker Image') {
-            steps {
-                echo '📤 Pushing Docker image to Docker Hub...'
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    script {
-                        docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials') {
-                            docker.image("${IMAGE_NAME}:${TAG}").push()
-                        }
-                    }
-                }
-            }
-        }
-
-        stage('Deploy to IIS - Copy') {
-            steps {
-                echo '📁 Deleting old IIS folder...'
+                echo '📁 Copying to IIS folder...'
                 bat """
-                    IF EXIST "${env.IIS_DEPLOY_PATH}" (
-                        rmdir /S /Q "${env.IIS_DEPLOY_PATH}"
+                    IF EXIST \"${env.IIS_DEPLOY_PATH}\" (
+                        rmdir /S /Q \"${env.IIS_DEPLOY_PATH}\"
                     )
-                    mkdir "${env.IIS_DEPLOY_PATH}"
-                """
-
-                echo '📁 Copying published files to IIS...'
-                bat """
-                    robocopy "${env.ARTIFACT_PATH}" "${env.IIS_DEPLOY_PATH}" /E /Z /NP /NFL /NDL /R:3 /W:5
-                    IF %ERRORLEVEL% GEQ 8 (
-                        echo ❌ Robocopy failed with error level %ERRORLEVEL%
-                        exit /b %ERRORLEVEL%
-                    )
+                    mkdir \"${env.IIS_DEPLOY_PATH}\"
+                    robocopy \"${env.ARTIFACT_PATH}\" \"${env.IIS_DEPLOY_PATH}\" /E /Z /NP /NFL /NDL /R:3 /W:3
                 """
             }
         }
@@ -118,27 +84,24 @@ pipeline {
                 powershell '''
                     Import-Module WebAdministration
                     if (Test-Path "IIS:\\AppPools\\${env:APP_POOL_NAME}") {
-                        Start-WebAppPool -Name "${env:APP_POOL_NAME}"
-                        Write-Host "✅ AppPool started."
+                        $state = (Get-WebAppPoolState -Name "${env:APP_POOL_NAME}").Value
+                        if ($state -eq "Stopped") {
+                            Start-WebAppPool -Name "${env:APP_POOL_NAME}"
+                            Write-Host "✅ AppPool started."
+                        }
                     }
                 '''
             }
         }
 
-        stage('List deployed files') {
+        stage('IIS Website Setup') {
             steps {
-                bat "dir \"${env.IIS_DEPLOY_PATH}\" /s"
-            }
-        }
-
-        stage('Deploy to IIS - Website Setup') {
-            steps {
+                echo '🌐 Configuring IIS Website...'
                 powershell '''
                     Import-Module WebAdministration
                     $siteName = "StudentManagement"
                     $sitePath = "${env:IIS_DEPLOY_PATH}"
                     $port = 8090
-
                     if (-not (Test-Path "IIS:\\Sites\\$siteName")) {
                         New-Website -Name $siteName -Port $port -PhysicalPath $sitePath -ApplicationPool "${env:APP_POOL_NAME}"
                         Write-Host "✅ Website '$siteName' created on port $port."
@@ -148,6 +111,12 @@ pipeline {
                 '''
             }
         }
+
+        stage('List Files') {
+            steps {
+                bat "dir \"${env.IIS_DEPLOY_PATH}\" /s"
+            }
+        }
     }
 
     post {
@@ -155,7 +124,7 @@ pipeline {
             echo "✅ Deployment completed successfully!"
         }
         failure {
-            echo "❌ Deployment failed. Check the logs for details."
+            echo "❌ Deployment failed. Check the logs!"
         }
     }
 }
