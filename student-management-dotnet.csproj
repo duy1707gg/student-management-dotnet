@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>student_management_dotnet</RootNamespace>
 
-    <!-- ✅ BẮT BUỘC để include Razor Views & Static Files khi publish -->
+    <!-- ✅ Đảm bảo Razor views và static files được publish -->
     <CopyRazorGenerateFilesToPublishDirectory>true</CopyRazorGenerateFilesToPublishDirectory>
     <CopyOutputSymbolsToPublishDirectory>true</CopyOutputSymbolsToPublishDirectory>
     <CopyRefAssembliesToPublishDirectory>true</CopyRefAssembliesToPublishDirectory>
@@ -28,7 +28,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" />
   </ItemGroup>
 
-  <!-- ✅ Include Razor views (.cshtml) and static files in wwwroot -->
+  <!-- ✅ Bao gồm Razor views (.cshtml) khi publish -->
   <ItemGroup>
     <Content Update="Views\**\*.cshtml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
