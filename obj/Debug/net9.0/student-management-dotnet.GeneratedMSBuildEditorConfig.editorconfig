@@ -104,14 +104,6 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ291cnNlXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/student-management-dotnet/Views/Grade/ClassStatistics.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR3JhZGVcQ2xhc3NTdGF0aXN0aWNzLmNzaHRtbA==
-build_metadata.AdditionalFiles.CssScope = 
-
-[D:/student-management-dotnet/Views/Grade/Create.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR3JhZGVcQ3JlYXRlLmNzaHRtbA==
-build_metadata.AdditionalFiles.CssScope = 
-
 [D:/student-management-dotnet/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
