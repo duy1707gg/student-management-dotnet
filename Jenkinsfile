@@ -93,7 +93,7 @@ pipeline {
 
         stage('Deploy to IIS - Copy') {
             steps {
-                echo '📁 Deleting old IIS files...'
+                echo '📁 Deleting old IIS deploy folder...'
                 bat """
                     IF EXIST \"${env.IIS_DEPLOY_PATH}\" (
                         rmdir /S /Q \"${env.IIS_DEPLOY_PATH}\"
@@ -103,7 +103,14 @@ pipeline {
 
                 echo '📁 Copying published files to IIS folder...'
                 bat """
-                    xcopy \"${env.ARTIFACT_PATH}\\*\" \"${env.IIS_DEPLOY_PATH}\\\" /E /Y /C /I
+                    robocopy \"${env.ARTIFACT_PATH}\" \"${env.IIS_DEPLOY_PATH}\" /E /Z /NP /NFL /NDL /R:3 /W:5
+                    IF %ERRORLEVEL% GEQ 8 (
+                        echo ❌ Robocopy failed with error level %ERRORLEVEL%
+                        exit /b %ERRORLEVEL%
+                    ) else (
+                        echo ✅ Robocopy succeeded with error level %ERRORLEVEL%
+                        exit /b 0
+                    )
                 """
             }
         }
