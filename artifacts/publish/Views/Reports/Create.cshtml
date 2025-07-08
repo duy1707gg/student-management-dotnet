@@ -1,0 +1,145 @@
+@model student_management_dotnet.ViewModel.CreateReportViewModel
+
+@{
+    ViewData["Title"] = "Submit Report";
+}
+
+<div class="container mx-auto px-4 py-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Submit New Report</h1>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="mb-4 p-4 bg-red-50 text-red-600 border-l-4 border-red-500 rounded"></div>
+            
+            <input type="hidden" asp-for="CreatedBy" />
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Class Selection -->
+                <div>
+                    <label asp-for="ClassId" class="block text-sm font-medium text-gray-700 mb-2">Class</label>
+                    <select asp-for="ClassId" asp-items="Model.ClassSelectList" 
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">Select a Class</option>
+                    </select>
+                    <span asp-validation-for="ClassId" class="text-sm text-red-600"></span>
+                </div>
+
+                <!-- Course Selection -->
+                <div>
+                    <label asp-for="CourseId" class="block text-sm font-medium text-gray-700 mb-2">Course</label>
+                    <select asp-for="CourseId" asp-items="Model.CourseSelectList"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">Select a Course</option>
+                    </select>
+                    <span asp-validation-for="CourseId" class="text-sm text-red-600"></span>
+                </div>
+
+                <!-- Report Type -->
+                <div>
+                    <label asp-for="ReportType" class="block text-sm font-medium text-gray-700 mb-2">Report Type</label>
+                    <select asp-for="ReportType" 
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="Assignment">Assignment</option>
+                        <option value="Project">Project</option>
+                        <option value="Homework">Homework</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <span asp-validation-for="ReportType" class="text-sm text-red-600"></span>
+                </div>
+
+                <!-- Report Date -->
+                <div>
+                    <label asp-for="ReportDate" class="block text-sm font-medium text-gray-700 mb-2">Report Date</label>
+                    <input asp-for="ReportDate" type="date" 
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <span asp-validation-for="ReportDate" class="text-sm text-red-600"></span>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="mt-6">
+                <label asp-for="Description" class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <textarea asp-for="Description" rows="4" 
+                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                          placeholder="Enter report description..."></textarea>
+                <span asp-validation-for="Description" class="text-sm text-red-600"></span>
+            </div>
+
+            <!-- File Upload -->
+            <!-- File Upload -->
+<div class="mt-6">
+    <label asp-for="ReportFile" class="block text-sm font-medium text-gray-700 mb-2">Upload File</label>
+    <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+        <div class="space-y-1 text-center">
+            <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" 
+                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <div class="flex text-sm text-gray-600">
+                <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                    <span>Upload a file</span>
+                    <input asp-for="ReportFile" id="file-upload" type="file" class="sr-only">
+                </label>
+                <p class="pl-1">or drag and drop</p>
+            </div>
+            <p class="text-xs text-gray-500">PDF, DOC, DOCX up to 10MB</p>
+            <!-- Show selected file name here -->
+            <p id="file-name" class="mt-2 text-sm text-gray-600"></p>
+        </div>
+    </div>
+    <span asp-validation-for="ReportFile" class="text-sm text-red-600"></span>
+</div>
+
+
+            <!-- Submit Buttons -->
+            <div class="mt-6 flex items-center justify-end space-x-3">
+                <a asp-action="Index" 
+                   class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Cancel
+                </a>
+                <button type="submit" 
+                        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Submit Report
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        document.getElementById('file-upload').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        const fileNameElement = document.getElementById('file-name');
+
+        if (file) {
+            // Check file size (10MB limit)
+            if (file.size > 10 * 1024 * 1024) {
+                alert('File size must be less than 10MB');
+                this.value = ''; // Clear file input
+                fileNameElement.textContent = ''; // Clear displayed file name
+                return;
+            }
+
+            // Check file type
+            const allowedTypes = ['.pdf', '.doc', '.docx'];
+            const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+            if (!allowedTypes.includes(fileExtension)) {
+                alert('Only PDF, DOC, and DOCX files are allowed');
+                this.value = ''; // Clear file input
+                fileNameElement.textContent = ''; // Clear displayed file name
+                return;
+            }
+
+            // Display selected file name
+            fileNameElement.textContent = `Selected file: ${file.name}`;
+        } else {
+            fileNameElement.textContent = ''; // Clear displayed file name if no file is selected
+        }
+    });
+    </script>
+} 

@@ -1,0 +1,95 @@
+@model student_management_dotnet.ViewModel.GradeReportViewModel
+
+@{
+    ViewData["Title"] = Model.GradeId.HasValue ? "Edit Grade" : "Create Grade";
+}
+
+<div class="max-w-4xl mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-6">@ViewData["Title"]</h1>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <form method="post" 
+          asp-action="Grade"
+          asp-controller="Reports"
+          asp-route-id="@Model.ReportId"
+          class="bg-white shadow-md rounded-lg p-6">
+        <div asp-validation-summary="ModelOnly" class="mb-4 text-red-600" />
+        
+        <!-- Always include ReportId -->
+        <input type="hidden" asp-for="ReportId" />
+        
+        @if (Model.GradeId.HasValue)
+        {
+            <input type="hidden" asp-for="GradeId" />
+        }
+
+        <!-- Student Info -->
+        <div class="mb-6 p-4 bg-gray-50 rounded-md">
+            <p class="text-gray-700"><span class="font-semibold">Student:</span> @Model.StudentName</p>
+            <p class="text-gray-700"><span class="font-semibold">Class:</span> @Model.ClassName</p>
+            <p class="text-gray-700"><span class="font-semibold">Course:</span> @Model.CourseName</p>
+            <p class="text-gray-700"><span class="font-semibold">Report Type:</span> @Model.ReportType</p>
+        </div>
+
+        <!-- Score -->
+        <div class="mb-4">
+            <label asp-for="Score" class="block text-gray-700 text-sm font-bold mb-2"></label>
+            <input asp-for="Score" type="number" step="0.01" min="0" max="100"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <span asp-validation-for="Score" class="text-red-600 text-sm"></span>
+        </div>
+
+        <!-- Comments -->
+        <div class="mb-6">
+            <label asp-for="Comment" class="block text-gray-700 text-sm font-bold mb-2"></label>
+            <textarea asp-for="Comment" rows="3"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+            <span asp-validation-for="Comment" class="text-red-600 text-sm"></span>
+        </div>
+
+        <!-- Create Grade Record Option -->
+        <div class="mb-6">
+            <label class="flex items-center">
+                <input type="checkbox" asp-for="CreateGradeRecord" class="form-checkbox h-5 w-5 text-blue-600">
+                <span class="ml-2 text-gray-700">Create Grade Record</span>
+            </label>
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex items-center justify-between">
+            <button type="submit" 
+                    class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                @(Model.GradeId.HasValue ? "Update" : "Create")
+            </button>
+            <a asp-action="Index" 
+               class="text-gray-600 hover:text-gray-800 font-semibold">
+                Back to List
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function() {
+            $("form").on("submit", function() {
+                var isValid = true;
+                
+                if ($("#Score").val() === "") {
+                    isValid = false;
+                    $("span[data-valmsg-for='Score']").text("Please enter a score");
+                }
+                
+                return isValid;
+            });
+        });
+    </script>
+}

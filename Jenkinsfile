@@ -23,8 +23,28 @@ pipeline {
         stage('Clean Artifacts') {
             steps {
                 echo '🧹 Cleaning old artifacts...'
-                bat "IF EXIST \"${env.ARTIFACT_PATH}\" rmdir /S /Q \"${env.ARTIFACT_PATH}\""
-                bat "mkdir \"${env.ARTIFACT_PATH}\""
+                bat """
+                    IF EXIST "${env.ARTIFACT_PATH}" (
+                        rmdir /S /Q "${env.ARTIFACT_PATH}"
+                    )
+                    mkdir "${env.ARTIFACT_PATH}"
+                """
+            }
+        }
+
+        stage('Stop IIS AppPool') {
+            steps {
+                echo '⛔ Stopping IIS App Pool...'
+                powershell '''
+                    Import-Module WebAdministration
+                    if (Test-Path "IIS:\\AppPools\\${env:APP_POOL_NAME}") {
+                        $state = (Get-WebAppPoolState -Name "${env:APP_POOL_NAME}").Value
+                        if ($state -eq "Started") {
+                            Stop-WebAppPool -Name "${env:APP_POOL_NAME}"
+                            Write-Host "✅ AppPool stopped."
+                        }
+                    }
+                '''
             }
         }
 
@@ -44,7 +64,7 @@ pipeline {
 
         stage('Publish') {
             steps {
-                echo '📦 Publishing project...'
+                echo '📦 Publishing project to ARTIFACT_PATH...'
                 bat "dotnet publish \"${env.CSPROJ}\" -c Release -o \"${env.ARTIFACT_PATH}\""
             }
         }
@@ -71,45 +91,22 @@ pipeline {
             }
         }
 
-        stage('Stop IIS AppPool') {
-            steps {
-                echo '⛔ Stopping IIS App Pool...'
-                powershell '''
-                    Import-Module WebAdministration
-                    if (Test-Path "IIS:\\AppPools\\${env:APP_POOL_NAME}") {
-                        $state = (Get-WebAppPoolState -Name "${env:APP_POOL_NAME}").Value
-                        if ($state -eq "Started") {
-                            Stop-WebAppPool -Name "${env:APP_POOL_NAME}"
-                            Write-Host "✅ AppPool stopped."
-                        } else {
-                            Write-Host "ℹ️ AppPool already stopped."
-                        }
-                    } else {
-                        Write-Host "⚠️ AppPool not found: ${env:APP_POOL_NAME}"
-                    }
-                '''
-            }
-        }
-
         stage('Deploy to IIS - Copy') {
             steps {
-                echo '📁 Deleting old IIS deploy folder...'
+                echo '📁 Deleting old IIS folder...'
                 bat """
-                    IF EXIST \"${env.IIS_DEPLOY_PATH}\" (
-                        rmdir /S /Q \"${env.IIS_DEPLOY_PATH}\"
+                    IF EXIST "${env.IIS_DEPLOY_PATH}" (
+                        rmdir /S /Q "${env.IIS_DEPLOY_PATH}"
                     )
-                    mkdir \"${env.IIS_DEPLOY_PATH}\"
+                    mkdir "${env.IIS_DEPLOY_PATH}"
                 """
 
-                echo '📁 Copying published files to IIS folder...'
+                echo '📁 Copying published files to IIS...'
                 bat """
-                    robocopy \"${env.ARTIFACT_PATH}\" \"${env.IIS_DEPLOY_PATH}\" /E /Z /NP /NFL /NDL /R:3 /W:5
+                    robocopy "${env.ARTIFACT_PATH}" "${env.IIS_DEPLOY_PATH}" /E /Z /NP /NFL /NDL /R:3 /W:5
                     IF %ERRORLEVEL% GEQ 8 (
                         echo ❌ Robocopy failed with error level %ERRORLEVEL%
                         exit /b %ERRORLEVEL%
-                    ) else (
-                        echo ✅ Robocopy succeeded with error level %ERRORLEVEL%
-                        exit /b 0
                     )
                 """
             }
@@ -121,15 +118,8 @@ pipeline {
                 powershell '''
                     Import-Module WebAdministration
                     if (Test-Path "IIS:\\AppPools\\${env:APP_POOL_NAME}") {
-                        $state = (Get-WebAppPoolState -Name "${env:APP_POOL_NAME}").Value
-                        if ($state -eq "Stopped") {
-                            Start-WebAppPool -Name "${env:APP_POOL_NAME}"
-                            Write-Host "✅ AppPool started."
-                        } else {
-                            Write-Host "ℹ️ AppPool already running."
-                        }
-                    } else {
-                        Write-Host "⚠️ AppPool not found: ${env:APP_POOL_NAME}"
+                        Start-WebAppPool -Name "${env:APP_POOL_NAME}"
+                        Write-Host "✅ AppPool started."
                     }
                 '''
             }
@@ -137,14 +127,12 @@ pipeline {
 
         stage('List deployed files') {
             steps {
-                echo '📝 Listing deployed files...'
                 bat "dir \"${env.IIS_DEPLOY_PATH}\" /s"
             }
         }
 
         stage('Deploy to IIS - Website Setup') {
             steps {
-                echo '🌐 Configuring IIS Website...'
                 powershell '''
                     Import-Module WebAdministration
                     $siteName = "StudentManagement"

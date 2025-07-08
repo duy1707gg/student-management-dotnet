@@ -1,0 +1,97 @@
+@model student_management_dotnet.ViewModel.EditClassViewModel
+
+@{
+    ViewData["Title"] = "Edit Class";
+}
+
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="bg-blue-600 p-4">
+            <h1 class="text-xl font-semibold text-white">Edit Class</h1>
+        </div>
+
+        <form asp-controller="Class" asp-action="Edit" method="post" class="p-6">
+            <div asp-validation-summary="ModelOnly" class="mb-4 text-red-600 text-sm"></div>
+            <input type="hidden" asp-for="ClassId" />
+            <input type="hidden" asp-for="CreatedAt" />
+            <input type="hidden" asp-for="CurrentStudents" />
+            <input type="hidden" asp-for="UpdatedAt" />
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="mb-4">
+                    <label asp-for="CourseId" class="block text-gray-700 text-sm font-semibold mb-2"></label>
+                    <select asp-for="CourseId" asp-items="Model.CourseSelectList"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </select>
+                    <span asp-validation-for="CourseId" class="text-red-600 text-xs"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="ClassName" class="block text-gray-700 text-sm font-semibold mb-2"></label>
+                    <input asp-for="ClassName"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <span asp-validation-for="ClassName" class="text-red-600 text-xs"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="TeacherName" class="block text-gray-700 text-sm font-semibold mb-2"></label>
+                    <input asp-for="TeacherName"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <span asp-validation-for="TeacherName" class="text-red-600 text-xs"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="MaxStudents" class="block text-gray-700 text-sm font-semibold mb-2"></label>
+                    <input asp-for="MaxStudents"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <span asp-validation-for="MaxStudents" class="text-red-600 text-xs"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="StartDate" class="block text-gray-700 text-sm font-semibold mb-2"></label>
+                    <input asp-for="StartDate" type="date"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <span asp-validation-for="StartDate" class="text-red-600 text-xs"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="EndDate" class="block text-gray-700 text-sm font-semibold mb-2"></label>
+                    <input asp-for="EndDate" type="date"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <span asp-validation-for="EndDate" class="text-red-600 text-xs"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="Status" class="block text-gray-700 text-sm font-semibold mb-2"></label>
+                    <select asp-for="Status"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="Open">Open</option>
+                        <option value="Closed">Closed</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                    <span asp-validation-for="Status" class="text-red-600 text-xs"></span>
+                </div>
+
+                <div class="col-span-2 text-gray-500 text-sm mt-2">
+                    <p>Current Students: @Model.CurrentStudents</p>
+                    <p>Created: @Model.CreatedAt.ToString("MMM dd, yyyy")</p>
+                </div>
+            </div>
+
+            <div class="flex mt-8 space-x-4">
+                <button type="submit"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Save
+                    Changes</button>
+                <a asp-action="Index"
+                    class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400">Back
+                    to List</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
