@@ -1,0 +1,41 @@
+@model student_management_dotnet.ViewModel.CourseListViewModel
+
+@{
+    ViewData["Title"] = "Attendance Management";
+}
+
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Courses</h1>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="p-4 bg-gray-50 border-b">
+            <h2 class="text-lg font-semibold text-gray-700">Select a Course to View Classes</h2>
+        </div>
+        
+        <div class="divide-y divide-gray-200">
+            @if (Model.Courses != null && Model.Courses.Any())
+            {
+                @foreach (var course in Model.Courses)
+                {
+                    <div class="p-4 hover:bg-gray-50 transition-all duration-150">
+                        <a href="@Url.Action("CourseClasses", new { id = course.CourseId })" 
+                           class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-medium text-blue-600">@course.CourseName</h3>
+                                <p class="text-sm text-gray-600">@course.Description</p>
+                            </div>
+                        </a>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="p-6 text-center text-gray-500">
+                    <p>No courses available.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

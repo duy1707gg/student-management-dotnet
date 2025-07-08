@@ -9,17 +9,17 @@ var builder = WebApplication.CreateBuilder(args);
 // ✅ Cấu hình cổng
 builder.WebHost.UseUrls("http://0.0.0.0:80");
 
-// ✅ Chuỗi kết nối từ biến môi trường hoặc appsettings.json
+// ✅ Kết nối CSDL
 var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION")
     ?? builder.Configuration.GetConnectionString("DefaultConnection");
 
 if (string.IsNullOrEmpty(connectionString))
-    throw new InvalidOperationException("Connection string is null. Please check environment variable DB_CONNECTION or appsettings.json");
+    throw new InvalidOperationException("Connection string is null.");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-// ✅ Cấu hình JWT
+// ✅ JWT Auth
 var jwtKey = builder.Configuration["Jwt:Key"];
 var jwtIssuer = builder.Configuration["Jwt:Issuer"];
 var jwtAudience = builder.Configuration["Jwt:Audience"];
@@ -43,23 +43,21 @@ builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// ✅ Middleware pipeline
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
+    app.UseExceptionHandler("/User/Error"); // nếu có Error.cshtml trong Views/User
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// ✅ Cấu hình route mặc định
+// ✅ Sửa ở đây: Định tuyến mặc định đến controller User
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=User}/{action=Index}/{id?}");
 
 app.Run();
